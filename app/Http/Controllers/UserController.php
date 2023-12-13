@@ -26,7 +26,7 @@ class UserController extends Controller
 
         $generatedToken = $newUser->createToken('auth_token');
 
-        return response()->json(['token' => $generatedToken->plainTextToken]);
+        return response()->json(['token' => $generatedToken->plainTextToken], 201);
     }
 
     public function login(Request $request)

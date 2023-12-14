@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -30,5 +31,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/tasks', 'store');
         Route::put('/tasks/{id}', 'update');
         Route::delete('/tasks/{id}', 'destroy');
+    });
+    Route::controller(ProjectController::class)->group(function() {
+        Route::get('/projects', 'index');
+        Route::get('/projects/{id}', 'show');
+        Route::post('/projects', 'store');
+        Route::put('/projects/{id}', 'update');
+        Route::delete('/projects/{id}', 'destroy');
     });
 });

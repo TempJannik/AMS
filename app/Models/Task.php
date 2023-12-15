@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 
 class Task extends Model
@@ -13,6 +15,18 @@ class Task extends Model
 
     protected $fillable = ['title', 'description', 'status', 'deadline', 'user_id', 'project_id'];
     public $editable = ['title', 'description', 'status', 'deadline'];
+
+    public static function validationRules()
+    {
+        return [
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],
+            'user_id' => 'required|exists:users,id',
+            'project_id' => 'required|exists:projects,id',
+            'deadline' => 'nullable|date|after:today',
+        ];
+    }
 
     public function editable(): array
     {

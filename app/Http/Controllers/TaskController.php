@@ -75,14 +75,7 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Task::class);
-        $validator = Validator::make($request->all(), [
-            'title' => 'required',
-            'description' => 'required',
-            'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],
-            'user_id' => 'required|exists:users,id',
-            'project_id' => 'required|exists:projects,id',
-            'deadline' => 'nullable|date'
-        ]);
+        $validator = Validator::make($request->all(), Task::validationRules());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -110,12 +103,7 @@ class TaskController extends Controller
         $task = Task::findOrFail($id);
         $this->authorize('update', $task);
 
-        $validator = Validator::make($request->only($task->editable()), [
-            'title' => 'required',
-            'description' => 'required',
-            'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],
-            'deadline' => 'nullable|date'
-        ]);
+        $validator = Validator::make($request->only($task->editable()), Task::validationRules());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);

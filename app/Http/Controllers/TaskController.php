@@ -3,21 +3,69 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\Project;
+use App\Models\User;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class TaskController extends Controller
 {
+    /**
+     * Display a listing of the resource with a deadline in the past
+     */
+    public function indexPastDeadline()
+    {
+        $this->authorize('viewAny', Task::class);
+        $tasks = Cache::remember("tasks_overdue", now()->addMinutes(15), function () {
+            return Task::with('user', 'project')->where('deadline', '<', Carbon::now())->get();
+        });
+
+        return response()->json($tasks);
+    }
+
+    /**
+     * Display a listing of the resource for a specific user.
+     */
+    public function indexForUser(int $user_id)
+    {
+        $this->authorize('viewAny', Task::class);
+        $user = User::findOrFail($user_id);
+        $tasks = Cache::remember("tasks_project_{$user_id}", now()->addMinutes(15), function () use ($user) {
+            return $user->tasks()->with('user', 'project')->get();
+        });
+        return response()->json($tasks);
+    }
+
+    /**
+     * Display a listing of the resource for a specific project.
+     */
+    public function indexForProject(int $project_id)
+    {
+        $this->authorize('viewAny', Task::class);
+        $project = Project::findOrFail($project_id);
+        $tasks = Cache::remember("tasks_project_{$project_id}", now()->addMinutes(15), function () use ($project) {
+            return $project->tasks()->with('user', 'project')->get();
+        });
+        
+        return response()->json($tasks);
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $tasks = Task::all();
+        $this->authorize('viewAny', Task::class);
+        $tasks = Cache::remember('tasks', now()->addMinutes(15), function () {
+            return Task::with('user', 'project')->get();
+        });
+        
         return response()->json($tasks);
     }
 
@@ -26,10 +74,14 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Task::class);
         $validator = Validator::make($request->all(), [
             'title' => 'required',
             'description' => 'required',
             'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],
+            'user_id' => 'required|exists:users,id',
+            'project_id' => 'required|exists:projects,id',
+            'deadline' => 'nullable|date'
         ]);
 
         if ($validator->fails()) {
@@ -45,7 +97,8 @@ class TaskController extends Controller
      */
     public function show(Request $request, int $id)
     {
-        $task = Task::findOrFail($id);
+        $task = Task::with('user', 'project')->findOrFail($id);
+        $this->authorize('view', $task);
         return response()->json($task);
     }
 
@@ -55,18 +108,20 @@ class TaskController extends Controller
     public function update(Request $request, int $id)
     {
         $task = Task::findOrFail($id);
+        $this->authorize('update', $task);
 
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->only($task->editable()), [
             'title' => 'required',
             'description' => 'required',
             'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],
+            'deadline' => 'nullable|date'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $task->update($request->all());
+        $task->update($request->only($task->editable()));
         return response()->json($task);
     }
 
@@ -76,6 +131,7 @@ class TaskController extends Controller
     public function destroy(Request $request, int $id)
     {
         $task = Task::findOrFail($id);
+        $this->authorize('delete', $task);
         $task->delete();
         return response()->json([], 204);
     }

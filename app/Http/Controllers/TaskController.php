@@ -16,11 +16,12 @@ use Carbon\Carbon;
 class TaskController extends Controller
 {
     /**
-     * Display a listing of the resource for a specific user.
+     * Display a listing of the resource with a deadline in the past
      */
     public function indexPastDeadline()
     {
-        $tasks = Task::where('deadline', '<', Carbon::now())->get();
+        $this->authorize('viewAny', Task::class);
+        $tasks = Task::with('user', 'project')->where('deadline', '<', Carbon::now())->get();
         return response()->json($tasks);
     }
 
@@ -29,6 +30,7 @@ class TaskController extends Controller
      */
     public function indexForUser(int $user_id)
     {
+        $this->authorize('viewAny', Task::class);
         $user = User::findOrFail($user_id);
         $tasks = $user->tasks()->with('user', 'project')->get();
         return response()->json($tasks);
@@ -39,6 +41,7 @@ class TaskController extends Controller
      */
     public function indexForProject(int $project_id)
     {
+        $this->authorize('viewAny', Task::class);
         $project = Project::findOrFail($project_id);
         $tasks = $project->tasks()->with('user', 'project')->get();
         return response()->json($tasks);
@@ -49,6 +52,7 @@ class TaskController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Task::class);
         $tasks = Task::with('user', 'project')->get();
         return response()->json($tasks);
     }
@@ -58,6 +62,7 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Task::class);
         $validator = Validator::make($request->all(), [
             'title' => 'required',
             'description' => 'required',
@@ -81,6 +86,7 @@ class TaskController extends Controller
     public function show(Request $request, int $id)
     {
         $task = Task::with('user', 'project')->findOrFail($id);
+        $this->authorize('view', $task);
         return response()->json($task);
     }
 
@@ -90,13 +96,12 @@ class TaskController extends Controller
     public function update(Request $request, int $id)
     {
         $task = Task::findOrFail($id);
+        $this->authorize('update', $task);
 
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->only($task->editable()), [
             'title' => 'required',
             'description' => 'required',
             'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],
-            'user_id' => 'required|exists:users,id',
-            'project_id' => 'required|exists:projects,id',
             'deadline' => 'nullable|date'
         ]);
 
@@ -104,7 +109,7 @@ class TaskController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $task->update($request->all());
+        $task->update($request->only($task->editable()));
         return response()->json($task);
     }
 
@@ -114,6 +119,7 @@ class TaskController extends Controller
     public function destroy(Request $request, int $id)
     {
         $task = Task::findOrFail($id);
+        $this->authorize('delete', $task);
         $task->delete();
         return response()->json([], 204);
     }

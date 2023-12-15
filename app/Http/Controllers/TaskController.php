@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class TaskController extends Controller
 {
@@ -21,7 +22,10 @@ class TaskController extends Controller
     public function indexPastDeadline()
     {
         $this->authorize('viewAny', Task::class);
-        $tasks = Task::with('user', 'project')->where('deadline', '<', Carbon::now())->get();
+        $tasks = Cache::remember("tasks_overdue", now()->addMinutes(15), function () {
+            return Task::with('user', 'project')->where('deadline', '<', Carbon::now())->get();
+        });
+
         return response()->json($tasks);
     }
 
@@ -32,7 +36,9 @@ class TaskController extends Controller
     {
         $this->authorize('viewAny', Task::class);
         $user = User::findOrFail($user_id);
-        $tasks = $user->tasks()->with('user', 'project')->get();
+        $tasks = Cache::remember("tasks_project_{$user_id}", now()->addMinutes(15), function () use ($user) {
+            return $user->tasks()->with('user', 'project')->get();
+        });
         return response()->json($tasks);
     }
 
@@ -43,7 +49,10 @@ class TaskController extends Controller
     {
         $this->authorize('viewAny', Task::class);
         $project = Project::findOrFail($project_id);
-        $tasks = $project->tasks()->with('user', 'project')->get();
+        $tasks = Cache::remember("tasks_project_{$project_id}", now()->addMinutes(15), function () use ($project) {
+            return $project->tasks()->with('user', 'project')->get();
+        });
+        
         return response()->json($tasks);
     }
 
@@ -53,7 +62,10 @@ class TaskController extends Controller
     public function index()
     {
         $this->authorize('viewAny', Task::class);
-        $tasks = Task::with('user', 'project')->get();
+        $tasks = Cache::remember('tasks', now()->addMinutes(15), function () {
+            return Task::with('user', 'project')->get();
+        });
+        
         return response()->json($tasks);
     }
 

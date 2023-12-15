@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Task;
 use App\Events\TaskUpdated;
+use Illuminate\Support\Facades\Cache;
 
 class TaskObserver
 {
@@ -12,7 +13,15 @@ class TaskObserver
      */
     public function created(Task $task): void
     {
-        //
+        Cache::forget('tasks');
+
+        if($task->isOverdue())
+        {
+            Cache::forget('tasks_overdue');
+        }
+
+        Cache::forget("tasks_user_{$task->user->id}");
+        Cache::forget("tasks_project_{$task->project->id}");
     }
 
     /**
@@ -20,6 +29,16 @@ class TaskObserver
      */
     public function updated(Task $task): void
     {
+        Cache::forget('tasks');
+
+        if($task->isOverdue())
+        {
+            Cache::forget('tasks_overdue');
+        }
+
+        Cache::forget("tasks_user_{$task->user->id}");
+        Cache::forget("tasks_project_{$task->project->id}");
+
         event(new TaskUpdated($task));
     }
 
@@ -28,7 +47,15 @@ class TaskObserver
      */
     public function deleted(Task $task): void
     {
-        //
+        Cache::forget('tasks');
+
+        if($task->isOverdue())
+        {
+            Cache::forget('tasks_overdue');
+        }
+
+        Cache::forget("tasks_user_{$task->user->id}");
+        Cache::forget("tasks_project_{$task->project->id}");
     }
 
     /**
@@ -36,7 +63,15 @@ class TaskObserver
      */
     public function restored(Task $task): void
     {
-        //
+        Cache::forget('tasks');
+
+        if($task->isOverdue())
+        {
+            Cache::forget('tasks_overdue');
+        }
+
+        Cache::forget("tasks_user_{$task->user->id}");
+        Cache::forget("tasks_project_{$task->project->id}");
     }
 
     /**
@@ -44,6 +79,14 @@ class TaskObserver
      */
     public function forceDeleted(Task $task): void
     {
-        //
+        Cache::forget('tasks');
+
+        if($task->isOverdue())
+        {
+            Cache::forget('tasks_overdue');
+        }
+
+        Cache::forget("tasks_user_{$task->user->id}");
+        Cache::forget("tasks_project_{$task->project->id}");
     }
 }

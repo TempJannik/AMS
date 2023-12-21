@@ -19,7 +19,7 @@ class TaskController extends Controller
     {
         $this->authorize('viewAny', Task::class);
 
-        $tasks = Cache::remember('tasks_overdue', now()->addMinutes(15), fn () => 
+        $tasks = Cache::remember('tasks_overdue', Carbon::now()->addMinutes(15), fn () => 
             Task::with([
                 'user',
                 'project'
@@ -34,16 +34,16 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource for a specific user.
      */
-    public function indexForUser(int $user_id)
+    public function indexForUser(int $userId)
     {
         $this->authorize('viewAny', Task::class);
 
-        $tasks = Cache::remember("tasks_project_{$user_id}", now()->addMinutes(15), fn () =>
+        $tasks = Cache::remember("tasks_project_{$userId}", Carbon::now()->addMinutes(15), fn () =>
             User::with([
                 'tasks.user',
                 'tasks.project',
             ])
-            ->findOrFail($user_id)
+            ->findOrFail($userId)
             ->tasks
         );
 
@@ -53,16 +53,16 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource for a specific project.
      */
-    public function indexForProject(int $project_id)
+    public function indexForProject(int $projectId)
     {
         $this->authorize('viewAny', Task::class);
 
-        $tasks = Cache::remember("tasks_project_{$project_id}", now()->addMinutes(15), fn() =>
+        $tasks = Cache::remember("tasks_project_{$projectId}", Carbon::now()->addMinutes(15), fn() =>
             Project::with([
                 'tasks.user',
                 'tasks.project',
             ])
-            ->findOrFail($project_id)
+            ->findOrFail($projectId)
             ->tasks
         );
 
@@ -76,7 +76,7 @@ class TaskController extends Controller
     {
         $this->authorize('viewAny', Task::class);
 
-        $tasks = Cache::remember('tasks', now()->addMinutes(15), function () {
+        $tasks = Cache::remember('tasks', Carbon::now()->addMinutes(15), function () {
             return Task::with('user', 'project')->get();
         });
 

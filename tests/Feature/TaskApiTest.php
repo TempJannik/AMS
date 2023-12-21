@@ -6,6 +6,7 @@ use App\Events\TaskUpdated;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use Carbon\Carbon;
 use App\Notifications\TaskOverdueNotification;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -67,11 +68,11 @@ class TaskApiTest extends TestCase
     public function test_can_get_only_overdue_tasks(): void
     {
         $overdueTask = Task::factory()->create([
-            'deadline' => now()->subDay(),
+            'deadline' => Carbon::now()->subDay(),
         ]);
 
         $nonOverdueTask = Task::factory()->create([
-            'deadline' => now()->addDay(),
+            'deadline' => Carbon::now()->addDay(),
         ]);
 
         $response = $this->get('/api/tasks/past-deadline', ['Accept' => 'application/json']);
@@ -161,7 +162,7 @@ class TaskApiTest extends TestCase
     public function test_can_update_task(): void
     {
         $task = Task::factory()->create([
-            'deadline' => now()->addDay(),
+            'deadline' => Carbon::now()->addDay(),
         ]);
 
         $updatedData = [
@@ -189,7 +190,7 @@ class TaskApiTest extends TestCase
     public function test_cant_update_invalid_task(): void
     {
         $task = Task::factory()->create([
-            'deadline' => now()->addDay(),
+            'deadline' => Carbon::now()->addDay(),
         ]);
 
         $updatedData = [
@@ -206,7 +207,7 @@ class TaskApiTest extends TestCase
     public function test_deadline_overdue_notification(): void
     {
         $task = Task::factory()->create([
-            'deadline' => now()->subDay(),
+            'deadline' => Carbon::now()->subDay(),
         ]);
 
         Event::fake();

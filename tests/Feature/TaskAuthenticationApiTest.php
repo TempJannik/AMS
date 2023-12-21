@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\Task;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class TaskAuthenticationApiTest extends TestCase
@@ -60,9 +60,9 @@ class TaskAuthenticationApiTest extends TestCase
         $taskToCreate = [
             'title' => 'Wichtige Aufgabe',
             'description' => 'Das ist eine wichtige Aufgabe',
-            'status' => 'todo'
+            'status' => 'todo',
         ];
-        $response = $this->post("/api/tasks", $taskToCreate, ['Accept' => 'application/json']);
+        $response = $this->post('/api/tasks', $taskToCreate, ['Accept' => 'application/json']);
         $response->assertStatus(401);
         $this->assertDatabaseMissing('tasks', $taskToCreate);
     }
@@ -108,7 +108,7 @@ class TaskAuthenticationApiTest extends TestCase
         $this->assertNotNull($adminUser);
         $task = Task::factory()->create([
             'deadline' => now()->subDay(),
-            'user_id' => $adminUser
+            'user_id' => $adminUser,
         ]);
         $this->assertNotNull($task);
 

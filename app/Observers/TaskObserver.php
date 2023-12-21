@@ -2,8 +2,8 @@
 
 namespace App\Observers;
 
-use App\Models\Task;
 use App\Events\TaskUpdated;
+use App\Models\Task;
 use Illuminate\Support\Facades\Cache;
 
 class TaskObserver
@@ -15,8 +15,7 @@ class TaskObserver
     {
         Cache::forget('tasks');
 
-        if($task->isOverdue())
-        {
+        if ($task->isOverdue()) {
             Cache::forget('tasks_overdue');
         }
 
@@ -31,8 +30,7 @@ class TaskObserver
     {
         Cache::forget('tasks');
 
-        if($task->isOverdue())
-        {
+        if ($task->isOverdue()) {
             Cache::forget('tasks_overdue');
         }
 
@@ -49,8 +47,7 @@ class TaskObserver
     {
         Cache::forget('tasks');
 
-        if($task->isOverdue())
-        {
+        if ($task->isOverdue()) {
             Cache::forget('tasks_overdue');
         }
 
@@ -65,8 +62,7 @@ class TaskObserver
     {
         Cache::forget('tasks');
 
-        if($task->isOverdue())
-        {
+        if ($task->isOverdue()) {
             Cache::forget('tasks_overdue');
         }
 
@@ -81,8 +77,7 @@ class TaskObserver
     {
         Cache::forget('tasks');
 
-        if($task->isOverdue())
-        {
+        if ($task->isOverdue()) {
             Cache::forget('tasks_overdue');
         }
 

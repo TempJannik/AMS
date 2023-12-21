@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Carbon\Carbon;
 
 class Task extends Model
 {
     use HasFactory;
 
     protected $fillable = ['title', 'description', 'status', 'deadline', 'user_id', 'project_id'];
+
     public $editable = ['title', 'description', 'status', 'deadline'];
 
     public static function validationRules()

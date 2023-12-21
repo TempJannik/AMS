@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -14,7 +14,7 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->only('email', 'name', 'password'), [
             'name' => 'unique:users|required',
-            'email'    => 'unique:users|required',
+            'email' => 'unique:users|required',
             'password' => 'required',
         ]);
 
@@ -32,7 +32,7 @@ class UserController extends Controller
     public function login(Request $request)
     {
         $authSuccessful = Auth::attempt($request->only('email', 'password'));
-        if(!$authSuccessful) {
+        if (! $authSuccessful) {
             return response()->json(['message' => 'Invalid login details'], 401);
         }
 
@@ -40,6 +40,7 @@ class UserController extends Controller
 
         $user->tokens()->delete();
         $generatedToken = $user->createToken('auth_token');
+
         return response()->json(['token' => $generatedToken->plainTextToken]);
     }
 }

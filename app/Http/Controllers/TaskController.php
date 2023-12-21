@@ -2,17 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Task;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
-use Illuminate\Validation\Rule;
-use App\Http\Requests\StoreTaskRequest;
-use App\Http\Requests\UpdateTaskRequest;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
 {
@@ -22,7 +18,7 @@ class TaskController extends Controller
     public function indexPastDeadline()
     {
         $this->authorize('viewAny', Task::class);
-        $tasks = Cache::remember("tasks_overdue", now()->addMinutes(15), function () {
+        $tasks = Cache::remember('tasks_overdue', now()->addMinutes(15), function () {
             return Task::with('user', 'project')->where('deadline', '<', Carbon::now())->get();
         });
 
@@ -39,6 +35,7 @@ class TaskController extends Controller
         $tasks = Cache::remember("tasks_project_{$user_id}", now()->addMinutes(15), function () use ($user) {
             return $user->tasks()->with('user', 'project')->get();
         });
+
         return response()->json($tasks);
     }
 
@@ -52,7 +49,7 @@ class TaskController extends Controller
         $tasks = Cache::remember("tasks_project_{$project_id}", now()->addMinutes(15), function () use ($project) {
             return $project->tasks()->with('user', 'project')->get();
         });
-        
+
         return response()->json($tasks);
     }
 
@@ -65,7 +62,7 @@ class TaskController extends Controller
         $tasks = Cache::remember('tasks', now()->addMinutes(15), function () {
             return Task::with('user', 'project')->get();
         });
-        
+
         return response()->json($tasks);
     }
 
@@ -82,6 +79,7 @@ class TaskController extends Controller
         }
 
         $task = Task::create($request->all());
+
         return response()->json($task, 201);
     }
 
@@ -92,6 +90,7 @@ class TaskController extends Controller
     {
         $task = Task::with('user', 'project')->findOrFail($id);
         $this->authorize('view', $task);
+
         return response()->json($task);
     }
 
@@ -110,6 +109,7 @@ class TaskController extends Controller
         }
 
         $task->update($request->only($task->editable()));
+
         return response()->json($task);
     }
 
@@ -121,6 +121,7 @@ class TaskController extends Controller
         $task = Task::findOrFail($id);
         $this->authorize('delete', $task);
         $task->delete();
+
         return response()->json([], 204);
     }
 }

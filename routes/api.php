@@ -25,7 +25,7 @@ Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::controller(TaskController::class)->group(function() {
+    Route::controller(TaskController::class)->group(function () {
         Route::get('/tasks', 'index');
         Route::get('/tasks/past-deadline', 'indexPastDeadline');
         Route::get('/tasks/{id}', 'show');
@@ -33,7 +33,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/tasks/{id}', 'update');
         Route::delete('/tasks/{id}', 'destroy');
     });
-    Route::controller(ProjectController::class)->group(function() {
+    Route::controller(ProjectController::class)->group(function () {
         Route::get('/projects', 'index');
         Route::get('/projects/{id}', 'show');
         Route::post('/projects', 'store');

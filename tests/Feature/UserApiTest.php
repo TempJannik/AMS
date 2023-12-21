@@ -2,11 +2,8 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\Task;
-use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class UserApiTest extends TestCase
@@ -25,9 +22,9 @@ class UserApiTest extends TestCase
         $userToCreate = [
             'email' => 'testuser@gmail.com',
             'name' => 'testuser',
-            'password' => 'test123'
+            'password' => 'test123',
         ];
-        $response = $this->post("/api/register", $userToCreate, ['Accept' => 'application/json']);
+        $response = $this->post('/api/register', $userToCreate, ['Accept' => 'application/json']);
         $response->assertStatus(201);
 
         unset($userToCreate['password']); //Unset as PW is now Hashed in DB
@@ -40,11 +37,11 @@ class UserApiTest extends TestCase
         $userToCreate = [
             'email' => 'testuser2@gmail.com',
             'name' => 'testuser2',
-            'password' => 'test123'
+            'password' => 'test123',
         ];
-        $response = $this->post("/api/register", $userToCreate, ['Accept' => 'application/json']);
+        $response = $this->post('/api/register', $userToCreate, ['Accept' => 'application/json']);
         $response->assertStatus(201);
-        $response = $this->post("/api/register", $userToCreate, ['Accept' => 'application/json']);
+        $response = $this->post('/api/register', $userToCreate, ['Accept' => 'application/json']);
         $response->assertStatus(422);
     }
 
@@ -53,16 +50,16 @@ class UserApiTest extends TestCase
         $userToCreate = [
             'email' => 'testuser3@gmail.com',
             'name' => 'testuser3',
-            'password' => 'test123'
+            'password' => 'test123',
         ];
-        $response = $this->post("/api/register", $userToCreate, ['Accept' => 'application/json']);
+        $response = $this->post('/api/register', $userToCreate, ['Accept' => 'application/json']);
         $response->assertStatus(201);
 
         $userToLoginWith = [
             'email' => 'testuser3@gmail.com',
-            'password' => 'test123'
+            'password' => 'test123',
         ];
-        $response = $this->post("/api/login", $userToLoginWith, ['Accept' => 'application/json']);
+        $response = $this->post('/api/login', $userToLoginWith, ['Accept' => 'application/json']);
         $response->assertStatus(200);
     }
 
@@ -71,16 +68,16 @@ class UserApiTest extends TestCase
         $userToCreate = [
             'email' => 'testuser4@gmail.com',
             'name' => 'testuser4',
-            'password' => 'test123'
+            'password' => 'test123',
         ];
-        $response = $this->post("/api/register", $userToCreate, ['Accept' => 'application/json']);
+        $response = $this->post('/api/register', $userToCreate, ['Accept' => 'application/json']);
         $response->assertStatus(201);
 
         $userToLoginWith = [
             'email' => 'testuser4@gmail.com',
-            'password' => 'test1234'
+            'password' => 'test1234',
         ];
-        $response = $this->post("/api/login", $userToLoginWith, ['Accept' => 'application/json']);
+        $response = $this->post('/api/login', $userToLoginWith, ['Accept' => 'application/json']);
         $response->assertStatus(401);
     }
 }

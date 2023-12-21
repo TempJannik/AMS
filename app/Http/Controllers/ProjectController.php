@@ -14,6 +14,7 @@ class ProjectController extends Controller
     public function index()
     {
         $tasks = Project::all();
+
         return response()->json($tasks);
     }
 
@@ -23,7 +24,7 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required'
+            'name' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -31,6 +32,7 @@ class ProjectController extends Controller
         }
 
         $task = Project::create($request->all());
+
         return response()->json($task, 201);
     }
 
@@ -40,6 +42,7 @@ class ProjectController extends Controller
     public function show(Request $request, int $id)
     {
         $task = Project::findOrFail($id);
+
         return response()->json($task);
     }
 
@@ -51,7 +54,7 @@ class ProjectController extends Controller
         $task = Project::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required'
+            'name' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -59,6 +62,7 @@ class ProjectController extends Controller
         }
 
         $task->update($request->all());
+
         return response()->json($task);
     }
 
@@ -69,6 +73,7 @@ class ProjectController extends Controller
     {
         $task = Project::findOrFail($id);
         $task->delete();
+
         return response()->json([], 204);
     }
 }

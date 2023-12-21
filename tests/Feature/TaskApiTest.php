@@ -2,18 +2,16 @@
 
 namespace Tests\Feature;
 
-
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Notification;
 use App\Events\TaskUpdated;
-use App\Listeners\CheckTaskDeadline;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\Task;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskOverdueNotification;
 use Database\Seeders\DatabaseSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class TaskApiTest extends TestCase
@@ -73,7 +71,7 @@ class TaskApiTest extends TestCase
         ]);
 
         $nonOverdueTask = Task::factory()->create([
-            'deadline' => now()->addDay(), 
+            'deadline' => now()->addDay(),
         ]);
 
         $response = $this->get('/api/tasks/past-deadline', ['Accept' => 'application/json']);
@@ -136,13 +134,13 @@ class TaskApiTest extends TestCase
             'description' => 'Das ist eine wichtige Aufgabe',
             'status' => 'todo',
             'project_id' => $project->id,
-            'user_id' => $user->id
+            'user_id' => $user->id,
         ];
 
         $this->actingAs($user);
 
         $start = microtime(true);
-        $response = $this->post("/api/tasks", $taskToCreate, ['Accept' => 'application/json']);
+        $response = $this->post('/api/tasks', $taskToCreate, ['Accept' => 'application/json']);
         $end = microtime(true);
         $responseTime = ($end - $start) * 1000;
 
@@ -154,9 +152,9 @@ class TaskApiTest extends TestCase
     public function test_cant_create_invalid_task(): void
     {
         $taskToCreate = [
-            'status' => 'invalid_status'
+            'status' => 'invalid_status',
         ];
-        $response = $this->post("/api/tasks", $taskToCreate, ['Accept' => 'application/json']);
+        $response = $this->post('/api/tasks', $taskToCreate, ['Accept' => 'application/json']);
         $response->assertStatus(422);
     }
 

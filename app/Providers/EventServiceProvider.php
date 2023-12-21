@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use App\Models\Task;
-use App\Observers\TaskObserver;
 use App\Events\TaskUpdated;
 use App\Listeners\CheckTaskDeadline;
+use App\Models\Task;
+use App\Observers\TaskObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;

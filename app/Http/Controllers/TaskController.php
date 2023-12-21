@@ -24,7 +24,7 @@ class TaskController extends Controller
                 'user',
                 'project'
             ])
-            ->where('deadline', '<', Carbon::now())
+            ->where('deadline', '<=', Carbon::now())
             ->get()
         );
 

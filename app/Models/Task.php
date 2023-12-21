@@ -45,7 +45,7 @@ class Task extends Model
 
     public function isOverdue(): bool
     {
-        return $this->deadline < Carbon::now();
+        return $this->deadline <= Carbon::now();
     }
 
     public function user(): BelongsTo

@@ -16,7 +16,7 @@ class Task extends Model
 
     public $editable = ['title', 'description', 'status', 'deadline'];
 
-    public static function validationRules()
+    public static function createValidationRules()
     {
         return [
             'title' => 'required|string|max:255',
@@ -24,6 +24,16 @@ class Task extends Model
             'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],
             'user_id' => 'required|exists:users,id',
             'project_id' => 'required|exists:projects,id',
+            'deadline' => 'nullable|date|after:today',
+        ];
+    }
+
+    public static function updateValidationRules()
+    {
+        return [
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],
             'deadline' => 'nullable|date|after:today',
         ];
     }

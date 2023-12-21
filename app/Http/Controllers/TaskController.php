@@ -72,7 +72,7 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Task::class);
-        $validator = Validator::make($request->all(), Task::validationRules());
+        $validator = Validator::make($request->all(), Task::createValidationRules());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -102,7 +102,7 @@ class TaskController extends Controller
         $task = Task::findOrFail($id);
         $this->authorize('update', $task);
 
-        $validator = Validator::make($request->only($task->editable()), Task::validationRules());
+        $validator = Validator::make($request->only($task->editable()), Task::updateValidationRules());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);

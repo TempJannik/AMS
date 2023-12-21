@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectTaskListController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserTaskListController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -42,10 +44,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::prefix('users/{id}/tasks')->group(function () {
-        Route::get('/', [TaskController::class, 'indexForUser']);
+        Route::get('/', UserTaskListController::class);
     });
 
     Route::prefix('projects/{id}/tasks')->group(function () {
-        Route::get('/', [TaskController::class, 'indexForProject']);
+        Route::get('/', ProjectTaskListController::class);
     });
 });

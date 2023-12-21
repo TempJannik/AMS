@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Project;
 use App\Models\Task;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -19,51 +17,12 @@ class TaskController extends Controller
     {
         $this->authorize('viewAny', Task::class);
 
-        $tasks = Cache::remember('tasks_overdue', Carbon::now()->addMinutes(15), fn () => 
-            Task::with([
-                'user',
-                'project'
-            ])
+        $tasks = Cache::remember('tasks_overdue', Carbon::now()->addMinutes(15), fn () => Task::with([
+            'user',
+            'project',
+        ])
             ->where('deadline', '<=', Carbon::now())
             ->get()
-        );
-
-        return response()->json($tasks);
-    }
-
-    /**
-     * Display a listing of the resource for a specific user.
-     */
-    public function indexForUser(int $userId)
-    {
-        $this->authorize('viewAny', Task::class);
-
-        $tasks = Cache::remember("tasks_project_{$userId}", Carbon::now()->addMinutes(15), fn () =>
-            User::with([
-                'tasks.user',
-                'tasks.project',
-            ])
-            ->findOrFail($userId)
-            ->tasks
-        );
-
-        return response()->json($tasks);
-    }
-
-    /**
-     * Display a listing of the resource for a specific project.
-     */
-    public function indexForProject(int $projectId)
-    {
-        $this->authorize('viewAny', Task::class);
-
-        $tasks = Cache::remember("tasks_project_{$projectId}", Carbon::now()->addMinutes(15), fn() =>
-            Project::with([
-                'tasks.user',
-                'tasks.project',
-            ])
-            ->findOrFail($projectId)
-            ->tasks
         );
 
         return response()->json($tasks);

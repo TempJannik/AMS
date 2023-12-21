@@ -16,8 +16,14 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        Permission::create(['name' => 'edit overdue tasks']);
-        $role = Role::create(['name' => 'Super-Admin']);
+        Permission::create([
+            'name' => 'edit overdue tasks', 
+            'guard_name' => 'api'
+        ]);
+        $role = Role::create([
+            'name' => 'Super-Admin',
+            'guard_name' => 'api'
+        ]);
         $role->givePermissionTo('edit overdue tasks');
         $admin = \App\Models\User::factory()->create([
             'name' => 'Admin User',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class TaskController extends Controller
             ->get()
         );
 
-        return response()->json($tasks);
+        return TaskResource::collection($tasks);
     }
 
     /**
@@ -39,7 +40,7 @@ class TaskController extends Controller
             return Task::with('user', 'project')->get();
         });
 
-        return response()->json($tasks);
+        return TaskResource::collection($tasks);
     }
 
     /**
@@ -62,7 +63,8 @@ class TaskController extends Controller
         $task->setUser($request->post('user_id'));
         $task->setProject($request->post('project_id'));
         $task->save();
-        return response()->json($task, 201);
+
+        return new TaskResource($task);
     }
 
     /**
@@ -76,7 +78,7 @@ class TaskController extends Controller
             'user',
             'project'
         ]);
-        return response()->json($task);
+        return new TaskResource($task);
     }
 
     /**
@@ -94,7 +96,7 @@ class TaskController extends Controller
 
         $task->update($request->only($task->fillable));
 
-        return response()->json($task);
+        return new TaskResource($task);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -13,9 +14,9 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $tasks = Project::all();
+        $projects = Project::all();
 
-        return response()->json($tasks);
+        return ProjectResource::collection($projects);
     }
 
     /**
@@ -30,10 +31,12 @@ class ProjectController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+        
+        $project = new Project();
+        $project->fill($request->only(['name']));
+        $project->save();
 
-        $task = Project::create($request->only(['name']));
-
-        return response()->json($task, 201);
+        return new ProjectResource($project);
     }
 
     /**
@@ -41,7 +44,7 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
-        return response()->json($project);
+        return new ProjectResource($project);
     }
 
     /**
@@ -59,7 +62,7 @@ class ProjectController extends Controller
 
         $project->update($request->only(['name']));
 
-        return response()->json($project);
+        return new ProjectResource($project);
     }
 
     /**

@@ -78,7 +78,7 @@ class TaskApiTest extends TestCase
         $response = $this->get('/api/tasks/past-deadline', ['Accept' => 'application/json']);
         $response->assertStatus(200);
 
-        $response->assertJsonCount(21);
+        $response->assertJsonCount(21, 'data');
         $response->assertJsonFragment([
             'id' => $overdueTask->id,
             'title' => $overdueTask->title,

@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -35,8 +34,8 @@ class TaskOverdueNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->line('The deadline for your task is overdue')
-                    ->line('Thank you for using our application!');
+            ->line('The deadline for your task is overdue')
+            ->line('Thank you for using our application!');
     }
 
     /**

@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Task;
-use App\Models\Project;
-use App\Models\User;
-use Illuminate\Validation\Rule;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\TaskResource;
+use App\Models\Task;
+use App\Services\TaskService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -22,38 +18,16 @@ class TaskController extends Controller
     public function indexPastDeadline()
     {
         $this->authorize('viewAny', Task::class);
-        $tasks = Cache::remember("tasks_overdue", now()->addMinutes(15), function () {
-            return Task::with('user', 'project')->where('deadline', '<', Carbon::now())->get();
-        });
 
-        return response()->json($tasks);
-    }
+        $tasks = Cache::remember('tasks_overdue', Carbon::now()->addMinutes(15), fn () => Task::with([
+            'user',
+            'project',
+        ])
+            ->where('deadline', '<=', Carbon::now())
+            ->get()
+        );
 
-    /**
-     * Display a listing of the resource for a specific user.
-     */
-    public function indexForUser(int $user_id)
-    {
-        $this->authorize('viewAny', Task::class);
-        $user = User::findOrFail($user_id);
-        $tasks = Cache::remember("tasks_project_{$user_id}", now()->addMinutes(15), function () use ($user) {
-            return $user->tasks()->with('user', 'project')->get();
-        });
-        return response()->json($tasks);
-    }
-
-    /**
-     * Display a listing of the resource for a specific project.
-     */
-    public function indexForProject(int $project_id)
-    {
-        $this->authorize('viewAny', Task::class);
-        $project = Project::findOrFail($project_id);
-        $tasks = Cache::remember("tasks_project_{$project_id}", now()->addMinutes(15), function () use ($project) {
-            return $project->tasks()->with('user', 'project')->get();
-        });
-        
-        return response()->json($tasks);
+        return TaskResource::collection($tasks);
     }
 
     /**
@@ -62,65 +36,62 @@ class TaskController extends Controller
     public function index()
     {
         $this->authorize('viewAny', Task::class);
-        $tasks = Cache::remember('tasks', now()->addMinutes(15), function () {
+
+        $tasks = Cache::remember('tasks', Carbon::now()->addMinutes(15), function () {
             return Task::with('user', 'project')->get();
         });
-        
-        return response()->json($tasks);
+
+        return TaskResource::collection($tasks);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTaskRequest $request, TaskService $taskService)
     {
         $this->authorize('create', Task::class);
-        $validator = Validator::make($request->all(), Task::validationRules());
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+        $task = $taskService->createTask($request);
 
-        $task = Task::create($request->all());
-        return response()->json($task, 201);
+        return new TaskResource($task);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, int $id)
+    public function show(Task $task)
     {
-        $task = Task::with('user', 'project')->findOrFail($id);
         $this->authorize('view', $task);
-        return response()->json($task);
+
+        $task->load([
+            'user',
+            'project',
+        ]);
+
+        return new TaskResource($task);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id)
+    public function update(UpdateTaskRequest $request, Task $task, TaskService $taskService)
     {
-        $task = Task::findOrFail($id);
         $this->authorize('update', $task);
 
-        $validator = Validator::make($request->only($task->editable()), Task::validationRules());
+        $task = $taskService->updateTask($request, $task);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $task->update($request->only($task->editable()));
-        return response()->json($task);
+        return new TaskResource($task);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, int $id)
+    public function destroy(Task $task)
     {
-        $task = Task::findOrFail($id);
         $this->authorize('delete', $task);
+
         $task->delete();
+
         return response()->json([], 204);
     }
 }

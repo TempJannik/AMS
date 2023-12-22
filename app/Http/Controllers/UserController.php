@@ -2,44 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
+use App\Services\UserService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function register(Request $request)
+    public function register(StoreUserRequest $request, UserService $userService)
     {
-        $validator = Validator::make($request->only('email', 'name', 'password'), [
-            'name' => 'unique:users|required',
-            'email'    => 'unique:users|required',
-            'password' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $newUser = User::create(['name' => $request->name, 'email' => $request->email, 'password' => Hash::make($request->password)]);
-
-        $generatedToken = $newUser->createToken('auth_token');
+        $newUser = $userService->createUser($request);
+        $generatedToken = $userService->getNewTokenForUser($newUser);
 
         return response()->json(['token' => $generatedToken->plainTextToken], 201);
     }
 
-    public function login(Request $request)
+    public function login(Request $request, UserService $userService)
     {
         $authSuccessful = Auth::attempt($request->only('email', 'password'));
-        if(!$authSuccessful) {
+        if (! $authSuccessful) {
             return response()->json(['message' => 'Invalid login details'], 401);
         }
 
         $user = User::where('email', $request['email'])->firstOrFail();
 
-        $user->tokens()->delete();
-        $generatedToken = $user->createToken('auth_token');
+        $generatedToken = $userService->getNewTokenForUser($user);
+
         return response()->json(['token' => $generatedToken->plainTextToken]);
     }
 }

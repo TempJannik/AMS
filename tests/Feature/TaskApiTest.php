@@ -2,18 +2,17 @@
 
 namespace Tests\Feature;
 
-
+use App\Events\TaskUpdated;
+use App\Http\Resources\TaskResource;
+use App\Models\Project;
+use App\Models\Task;
+use App\Models\User;
+use App\Notifications\TaskOverdueNotification;
+use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
-use App\Events\TaskUpdated;
-use App\Listeners\CheckTaskDeadline;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\Task;
-use App\Models\Project;
-use App\Models\User;
-use App\Notifications\TaskOverdueNotification;
-use Database\Seeders\DatabaseSeeder;
 use Tests\TestCase;
 
 class TaskApiTest extends TestCase
@@ -23,10 +22,7 @@ class TaskApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $seeder = new DatabaseSeeder();
-        $seeder->run();
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs(User::factory()->create());
     }
 
     private function assertTaskListResponse($response, $tasks): void
@@ -41,108 +37,140 @@ class TaskApiTest extends TestCase
 
     public function test_tasks_for_user_are_returned(): void
     {
-        $user = User::first();
+        $user = User::factory()->create();
+        $tasks = Task::factory(5)->create(['user_id' => $user->id]);
+        $differentUser = User::factory()->create();
+        Task::factory(5)->create(['user_id' => $differentUser->id]);
+
+        $taskResource = TaskResource::collection($tasks);
+        $taskResourceJson = $taskResource->response()->getData(true);
+
         $this->actingAs($user);
 
-        $userTasks = Task::where('user_id', $user->id)->get();
+        $response = $this->get("/api/users/{$user->id}/tasks");
 
-        $response = $this->get("/api/users/{$user->id}/tasks", ['Accept' => 'application/json']);
         $response->assertStatus(200);
-
-        $this->assertTaskListResponse($response, $userTasks);
+        $responseData = $response->json('data');
+        $response->assertJsonCount(5, 'data');
+        $this->assertEquals($taskResourceJson['data'], $responseData);
     }
 
     public function test_tasks_for_project_are_returned(): void
     {
-        $user = User::first();
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
+        $tasks = Task::factory(5)->create(['project_id' => $project->id]);
+        $differentProject = Project::factory()->create();
+        Task::factory(5)->create(['project_id' => $differentProject->id]);
+
+        $taskResource = TaskResource::collection($tasks);
+        $taskResourceJson = $taskResource->response()->getData(true);
+
         $this->actingAs($user);
-        $project = Project::first();
 
-        $projectTasks = Task::where('project_id', $project->id)->get();
+        $response = $this->get("/api/projects/{$project->id}/tasks");
 
-        $response = $this->get("/api/projects/{$project->id}/tasks", ['Accept' => 'application/json']);
         $response->assertStatus(200);
-
-        $this->assertTaskListResponse($response, $projectTasks);
+        $responseData = $response->json('data');
+        $response->assertJsonCount(5, 'data');
+        $this->assertEquals($taskResourceJson['data'], $responseData);
     }
 
     public function test_can_get_only_overdue_tasks(): void
     {
-        $overdueTask = Task::factory()->create([
-            'deadline' => now()->subDay(),
+        $user = User::factory()->create();
+        $overdueTasks = Task::factory(2)->create([
+            'deadline' => Carbon::now()->subDay(),
         ]);
 
-        $nonOverdueTask = Task::factory()->create([
-            'deadline' => now()->addDay(), 
+        Task::factory()->create([
+            'deadline' => Carbon::now()->addDay(),
         ]);
 
-        $response = $this->get('/api/tasks/past-deadline', ['Accept' => 'application/json']);
+        $this->actingAs($user);
+
+        $response = $this->getJson('/api/tasks/past-deadline');
         $response->assertStatus(200);
+        $responseData = $response->json('data');
 
-        $response->assertJsonCount(21);
-        $response->assertJsonFragment([
-            'id' => $overdueTask->id,
-            'title' => $overdueTask->title,
-        ]);
+        $taskResource = TaskResource::collection($overdueTasks);
+        $taskResourceJson = $taskResource->response()->getData(true);
+
+        $response->assertJsonCount(2, 'data');
+        $this->assertEquals($taskResourceJson['data'], $responseData);
     }
 
     public function test_can_get_task_list(): void
     {
+        $tasks = Task::factory(5)->create();
+
         $start = microtime(true);
-        $response = $this->get('/api/tasks', ['Accept' => 'application/json']);
+        $response = $this->getJson('/api/tasks');
         $end = microtime(true);
         $responseTime = ($end - $start) * 1000;
 
+        $taskResource = TaskResource::collection($tasks);
+        $taskResourceJson = $taskResource->response()->getData(true);
+
         $response->assertStatus(200);
+        $response->assertJsonCount(5, 'data');
+        $responseData = $response->json('data');
+
+        $this->assertEquals($taskResourceJson['data'], $responseData);
         $this->assertLessThan(300, $responseTime, 'Response time should be less than 300ms');
     }
 
     public function test_can_get_single_task(): void
     {
-        $taskToFind = Task::first();
-        $this->assertNotNull($taskToFind);
+        $task = Task::factory()->create();
 
         $start = microtime(true);
-        $response = $this->get("/api/tasks/{$taskToFind->id}", ['Accept' => 'application/json']);
+        $response = $this->getJson("/api/tasks/{$task->id}");
         $end = microtime(true);
         $responseTime = ($end - $start) * 1000;
 
+        $taskResource = new TaskResource($task);
+        $taskResourceJson = $taskResource->response()->getData(true);
+
         $response->assertStatus(200);
+        $responseData = $response->json('data');
+
+        $this->assertEquals($taskResourceJson['data'], $responseData);
         $this->assertLessThan(300, $responseTime, 'Response time should be less than 300ms');
     }
 
     public function test_can_delete_task(): void
     {
-        $taskToFind = Task::first();
-        $this->assertNotNull($taskToFind);
-        $this->actingAs($taskToFind->user);
+        $user = User::factory()->create();
+        $task = Task::factory()->create(['user_id' => $user->id]);
+        $this->actingAs($user);
 
         $start = microtime(true);
-        $response = $this->delete("/api/tasks/{$taskToFind->id}", [], ['Accept' => 'application/json']);
+        $response = $this->deleteJson("/api/tasks/{$task->id}");
         $end = microtime(true);
         $responseTime = ($end - $start);
 
         $response->assertStatus(204);
         $this->assertLessThan(300, $responseTime, 'Response time should be less than 300ms');
-        $this->assertDatabaseMissing('tasks', ['id' => $taskToFind->id]);
+        $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
     }
 
     public function test_can_create_task(): void
     {
-        $project = Project::first();
-        $user = User::first();
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
         $taskToCreate = [
             'title' => 'Wichtige Aufgabe',
             'description' => 'Das ist eine wichtige Aufgabe',
             'status' => 'todo',
             'project_id' => $project->id,
-            'user_id' => $user->id
+            'user_id' => $user->id,
         ];
 
         $this->actingAs($user);
 
         $start = microtime(true);
-        $response = $this->post("/api/tasks", $taskToCreate, ['Accept' => 'application/json']);
+        $response = $this->postJson('/api/tasks', $taskToCreate);
         $end = microtime(true);
         $responseTime = ($end - $start) * 1000;
 
@@ -154,16 +182,16 @@ class TaskApiTest extends TestCase
     public function test_cant_create_invalid_task(): void
     {
         $taskToCreate = [
-            'status' => 'invalid_status'
+            'status' => 'invalid_status',
         ];
-        $response = $this->post("/api/tasks", $taskToCreate, ['Accept' => 'application/json']);
+        $response = $this->postJson('/api/tasks', $taskToCreate);
         $response->assertStatus(422);
     }
 
     public function test_can_update_task(): void
     {
         $task = Task::factory()->create([
-            'deadline' => now()->addDay(),
+            'deadline' => Carbon::now()->addDay(),
         ]);
 
         $updatedData = [
@@ -174,24 +202,19 @@ class TaskApiTest extends TestCase
 
         $this->actingAs($task->user);
         $start = microtime(true);
-        $response = $this->put("/api/tasks/{$task->id}", $updatedData, ['Accept' => 'application/json']);
+        $response = $this->putJson("/api/tasks/{$task->id}", $updatedData);
         $end = microtime(true);
         $responseTime = ($end - $start) * 1000;
 
         $response->assertStatus(200);
         $this->assertLessThan(300, $responseTime, 'Response time should be less than 300ms');
-        $this->assertDatabaseHas('tasks', [
-            'id' => $task->id,
-            'title' => 'Neuer Titel',
-            'description' => 'Neue Beschreibung',
-            'status' => 'done',
-        ]);
+        $this->assertDatabaseHas('tasks', array_merge(['id' => $task->id], $updatedData));
     }
 
     public function test_cant_update_invalid_task(): void
     {
         $task = Task::factory()->create([
-            'deadline' => now()->addDay(),
+            'deadline' => Carbon::now()->addDay(),
         ]);
 
         $updatedData = [
@@ -201,14 +224,14 @@ class TaskApiTest extends TestCase
         ];
 
         $this->actingAs($task->user);
-        $response = $this->put("/api/tasks/{$task->id}", $updatedData, ['Accept' => 'application/json']);
+        $response = $this->putJson("/api/tasks/{$task->id}", $updatedData);
         $response->assertStatus(422);
     }
 
     public function test_deadline_overdue_notification(): void
     {
         $task = Task::factory()->create([
-            'deadline' => now()->subDay(),
+            'deadline' => Carbon::now()->subDay(),
         ]);
 
         Event::fake();

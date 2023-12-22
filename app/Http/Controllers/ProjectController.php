@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
+use App\Http\Resources\ProjectResource;
 use App\Models\Project;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Services\ProjectService;
 
 class ProjectController extends Controller
 {
@@ -13,62 +15,46 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $tasks = Project::all();
-        return response()->json($tasks);
+        $projects = Project::all();
+
+        return ProjectResource::collection($projects);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request, ProjectService $projectService)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required'
-        ]);
+        $project = $projectService->createProject($request);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $task = Project::create($request->all());
-        return response()->json($task, 201);
+        return new ProjectResource($project);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, int $id)
+    public function show(Project $project)
     {
-        $task = Project::findOrFail($id);
-        return response()->json($task);
+        return new ProjectResource($project);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id)
+    public function update(UpdateProjectRequest $request, ProjectService $projectService, Project $project)
     {
-        $task = Project::findOrFail($id);
+        $updatedProject = $projectService->updateProject($request, $project);
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $task->update($request->all());
-        return response()->json($task);
+        return new ProjectResource($updatedProject);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, int $id)
+    public function destroy(Project $project)
     {
-        $task = Project::findOrFail($id);
-        $task->delete();
+        $project->delete();
+
         return response()->json([], 204);
     }
 }

@@ -23,7 +23,7 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->only(['name']), [
             'name' => 'required',
         ]);
 
@@ -31,7 +31,7 @@ class ProjectController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $task = Project::create($request->all());
+        $task = Project::create($request->only(['name']));
 
         return response()->json($task, 201);
     }
@@ -49,7 +49,7 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Project $project)
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->only(['name']), [
             'name' => 'required',
         ]);
 
@@ -57,7 +57,7 @@ class ProjectController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $project->update($request->all());
+        $project->update($request->only(['name']));
 
         return response()->json($project);
     }

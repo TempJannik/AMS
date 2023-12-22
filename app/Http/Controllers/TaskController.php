@@ -49,14 +49,19 @@ class TaskController extends Controller
     {
         $this->authorize('create', Task::class);
 
-        $validator = Validator::make($request->all(), Task::createValidationRules());
+        $task = new Task();
+        
+        $validator = Validator::make($request->only(['title', 'description', 'status', 'deadline', 'user_id', 'project_id']), Task::createValidationRules());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $task = Task::create($request->all());
-
+        
+        $task->fill($request->only($task->fillable));
+        $task->setUser($request->post('user_id'));
+        $task->setProject($request->post('project_id'));
+        $task->save();
         return response()->json($task, 201);
     }
 
@@ -81,13 +86,13 @@ class TaskController extends Controller
     {
         $this->authorize('update', $task);
 
-        $validator = Validator::make($request->only($task->editable()), Task::updateValidationRules());
+        $validator = Validator::make($request->only($task->fillable), Task::updateValidationRules());
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $task->update($request->only($task->editable()));
+        $task->update($request->only($task->fillable));
 
         return response()->json($task);
     }

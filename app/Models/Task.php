@@ -12,9 +12,7 @@ class Task extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'description', 'status', 'deadline', 'user_id', 'project_id'];
-
-    public $editable = ['title', 'description', 'status', 'deadline'];
+    protected $fillable = ['title', 'description', 'status', 'deadline'];
 
     public static function createValidationRules()
     {
@@ -38,14 +36,17 @@ class Task extends Model
         ];
     }
 
-    public function editable(): array
-    {
-        return $this->editable;
-    }
-
     public function isOverdue(): bool
     {
         return $this->deadline <= Carbon::now();
+    }
+
+    public function setUser($userId) {
+        $this->attributes['user_id'] = $userId;
+    }
+    
+    public function setProject($projectId) {
+        $this->attributes['project_id'] = $projectId;
     }
 
     public function user(): BelongsTo

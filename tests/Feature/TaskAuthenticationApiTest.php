@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Task;
 use App\Models\User;
+use Database\Factories\TaskFactory;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,63 +17,58 @@ class TaskAuthenticationApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $seeder = new DatabaseSeeder();
-        $seeder->run();
     }
 
-    public function test_cant_get_task_list(): void
+    public function test_guest_cant_get_task_list(): void
     {
-        $response = $this->get('/api/tasks', ['Accept' => 'application/json']);
+        $response = $this->getJson('/api/tasks');
         $response->assertStatus(401);
     }
 
-    public function test_cant_get_single_task(): void
+    public function test_guest_cant_get_single_task(): void
     {
-        $taskToFind = Task::first();
-        $this->assertNotNull($taskToFind);
+        $task = Task::factory()->create();
 
-        $response = $this->get("/api/tasks/{$taskToFind->id}", ['Accept' => 'application/json']);
+        $response = $this->getJson("/api/tasks/{$task->id}");
         $response->assertStatus(401);
     }
 
-    public function test_cant_delete_task(): void
+    public function test_guest_cant_delete_task(): void
     {
-        $taskToFind = Task::first();
-        $this->assertNotNull($taskToFind);
+        $task = Task::factory()->create();
 
-        $response = $this->delete("/api/tasks/{$taskToFind->id}", [], ['Accept' => 'application/json']);
+        $response = $this->deleteJson("/api/tasks/{$task->id}");
         $response->assertStatus(401);
-        $this->assertDatabaseHas('tasks', $taskToFind->toArray());
+        $this->assertDatabaseHas('tasks', ['id' => $task->id]);
     }
 
-    public function test_cant_delete_other_users_task(): void
+    public function test_user_cant_delete_other_users_task(): void
     {
         $task = Task::factory()->create();
         $user = User::factory()->create();
 
         $this->actingAs($user);
 
-        $response = $this->delete("/api/tasks/{$task->id}", [], ['Accept' => 'application/json']);
+        $response = $this->deleteJson("/api/tasks/{$task->id}");
         $response->assertStatus(403);
     }
 
-    public function test_cant_create_task(): void
+    public function test_guest_cant_create_task(): void
     {
         $taskToCreate = [
             'title' => 'Wichtige Aufgabe',
             'description' => 'Das ist eine wichtige Aufgabe',
             'status' => 'todo',
         ];
-        $response = $this->post('/api/tasks', $taskToCreate, ['Accept' => 'application/json']);
+        $response = $this->postJson('/api/tasks', $taskToCreate);
         $response->assertStatus(401);
         $this->assertDatabaseMissing('tasks', $taskToCreate);
     }
 
-    public function test_cant_update_other_users_task(): void
+    public function test_user_cant_update_other_users_task(): void
     {
         $user = User::factory()->create();
-        $otherUser = User::factory()->create();
-        $task = Task::factory()->create(['user_id' => $otherUser]);
+        $task = Task::factory()->create();
 
         $this->actingAs($user);
 
@@ -81,11 +78,11 @@ class TaskAuthenticationApiTest extends TestCase
             'status' => 'in_progress',
         ];
 
-        $response = $this->put("/api/tasks/{$task->id}", $updatedData, ['Accept' => 'application/json']);
+        $response = $this->putJson("/api/tasks/{$task->id}", $updatedData);
         $response->assertStatus(403);
     }
 
-    public function test_cant_update_overdue_task(): void
+    public function test_normal_user_cant_update_overdue_task(): void
     {
         $task = Task::factory()->create([
             'deadline' => now()->subDay(),
@@ -98,19 +95,20 @@ class TaskAuthenticationApiTest extends TestCase
         ];
 
         $this->actingAs($task->user);
-        $response = $this->put("/api/tasks/{$task->id}", $updatedData, ['Accept' => 'application/json']);
+        $response = $this->putJson("/api/tasks/{$task->id}", $updatedData);
         $response->assertStatus(403);
     }
 
     public function test_admin_can_update_overdue_task(): void
     {
-        $adminUser = User::where('name', 'Admin User')->first();
-        $this->assertNotNull($adminUser);
+        $adminUser = User::factory()->create();
+        (new RolesAndPermissionsSeeder())->run();
+        $adminUser->assignRole('Super-Admin');
+
         $task = Task::factory()->create([
             'deadline' => now()->subDay(),
-            'user_id' => $adminUser,
+            'user_id' => $adminUser->id,
         ]);
-        $this->assertNotNull($task);
 
         $updatedData = [
             'title' => 'Neuer Titel',
@@ -119,7 +117,7 @@ class TaskAuthenticationApiTest extends TestCase
         ];
 
         $this->actingAs($adminUser);
-        $response = $this->put("/api/tasks/{$task->id}", $updatedData, ['Accept' => 'application/json']);
+        $response = $this->putJson("/api/tasks/{$task->id}", $updatedData);
         $response->assertStatus(200);
     }
 }

@@ -23,6 +23,7 @@ Jetzt sollte der Projektinhalt heruntergeladen sein.
 
 2. Datenbank konfigurieren
 In der `.env` Datei wird definiert, wie auf die Datenbank zugegriffen wird. Um eine `.env` Datei einzurichten, kann die `.env.example` kopiert und in `.env` umbenannt werden. Aktuell wird über 127.0.0.1:3306 mit dem Benutzernamen `root` ohne Passwort zugegriffen. Wenn die Datenbank noch nicht existiert kann sie mit folgendem SQL Befehl erstellt werden `CREATE DATABASE smake;`. Anschließend muss der Name der Datenbank (DB_DATABASE) entsprechend angepasst werden.
+Für das Testing wird eine andere Datenbank `testing` benötigt. Entsprechend muss hierfür auch der Befehl `CREATE DATABASE testing;` ausgeführt werden.
 
 3. Packages installieren
 Mit dem Befehl `composer install` werden alle nötigen Pakete installiert.
@@ -44,6 +45,7 @@ Um in der lokalen Umgebung ein Webserver zu starten über welchen die API läuft
 8. Tests ausführen
 Die Tests sind mit der PHPUnit Library umgesetzt. Ausgeführt werden können diese mit `php artisan test`
 Mit dem filter Argument ist es auch möglich einzelne Test Klassen auszuführen. Beispiel: `php artisan test --filter=TaskApiTest`
+Tests werden auf einer separaten Datenbankverbindung ausgeführt. Diese Verbindung ist in der .env unter TESTING_DB_ konfigurierbar. Die Daten die zuvor durch bspw. ein `php artisan db:seed` eingespielt wurden bleiben entsprechend erhalten.
 
 9. Deployment
 `php artisan serve` ist nur ein lokaler Webserver. Für eine produktive Umgebung wäre ein umfangreicher Webserver wie Apache oder Nginx geeignet.

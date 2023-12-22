@@ -24,7 +24,7 @@ class UserApiTest extends TestCase
             'name' => 'testuser',
             'password' => 'test123',
         ];
-        $response = $this->post('/api/register', $userToCreate, ['Accept' => 'application/json']);
+        $response = $this->postJson('/api/register', $userToCreate);
         $response->assertStatus(201);
 
         unset($userToCreate['password']); //Unset as PW is now Hashed in DB

@@ -14,27 +14,9 @@ class Task extends Model
 
     protected $fillable = ['title', 'description', 'status', 'deadline'];
 
-    public static function createValidationRules()
-    {
-        return [
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],
-            'user_id' => 'required|exists:users,id',
-            'project_id' => 'required|exists:projects,id',
-            'deadline' => 'nullable|date|after:today',
-        ];
-    }
-
-    public static function updateValidationRules()
-    {
-        return [
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'status' => ['required', Rule::in(['todo', 'in_progress', 'done'])],
-            'deadline' => 'nullable|date|after:today',
-        ];
-    }
+    protected $casts = [
+        'deadline' => 'datetime',
+    ];
 
     public function isOverdue(): bool
     {

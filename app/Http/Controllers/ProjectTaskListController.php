@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\TaskResource;
 use App\Models\Project;
 use App\Models\Task;
 use Carbon\Carbon;
@@ -24,6 +25,6 @@ class ProjectTaskListController extends Controller
             ])->tasks
         );
 
-        return response()->json($tasks);
+        return TaskResource::collection($tasks);
     }
 }

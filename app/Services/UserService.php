@@ -21,6 +21,7 @@ class UserService
     {
         $user->tokens()->delete();
         $generatedToken = $user->createToken('auth_token');
+
         return $generatedToken;
     }
 }

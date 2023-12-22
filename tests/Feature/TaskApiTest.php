@@ -9,7 +9,6 @@ use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskOverdueNotification;
 use Carbon\Carbon;
-use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
@@ -47,7 +46,7 @@ class TaskApiTest extends TestCase
         $taskResourceJson = $taskResource->response()->getData(true);
 
         $this->actingAs($user);
-        
+
         $response = $this->get("/api/users/{$user->id}/tasks");
 
         $response->assertStatus(200);
@@ -63,12 +62,12 @@ class TaskApiTest extends TestCase
         $tasks = Task::factory(5)->create(['project_id' => $project->id]);
         $differentProject = Project::factory()->create();
         Task::factory(5)->create(['project_id' => $differentProject->id]);
-        
+
         $taskResource = TaskResource::collection($tasks);
         $taskResourceJson = $taskResource->response()->getData(true);
 
         $this->actingAs($user);
-        
+
         $response = $this->get("/api/projects/{$project->id}/tasks");
 
         $response->assertStatus(200);

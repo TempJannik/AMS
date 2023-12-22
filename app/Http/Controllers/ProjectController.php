@@ -4,12 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
-use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Services\ProjectService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class ProjectController extends Controller
 {

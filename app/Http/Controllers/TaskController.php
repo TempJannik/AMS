@@ -8,9 +8,7 @@ use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use App\Services\TaskService;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
 {
@@ -67,8 +65,9 @@ class TaskController extends Controller
 
         $task->load([
             'user',
-            'project'
+            'project',
         ]);
+
         return new TaskResource($task);
     }
 
@@ -90,7 +89,7 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $this->authorize('delete', $task);
-        
+
         $task->delete();
 
         return response()->json([], 204);

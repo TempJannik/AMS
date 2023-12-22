@@ -4,8 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Task;
 use App\Models\User;
-use Database\Factories\TaskFactory;
-use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

@@ -11,6 +11,7 @@ class ProjectService
     public function updateProject(UpdateProjectRequest $request, Project $project): Project
     {
         $project->update($request->only(['name']));
+
         return $project;
     }
 

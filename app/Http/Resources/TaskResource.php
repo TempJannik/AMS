@@ -23,7 +23,7 @@ class TaskResource extends JsonResource
             'project' => new ProjectResource($this->project),
             'user' => new UserResource($this->user),
             'updated_at' => $this->updated_at,
-            'created_at' => $this->created_at
+            'created_at' => $this->created_at,
         ];
     }
 }

@@ -18,11 +18,10 @@ class UserTaskListController extends Controller
     {
         $this->authorize('viewAny', Task::class);
 
-        $tasks = Cache::remember("tasks_project_{$user->id}", Carbon::now()->addMinutes(15), fn () => 
-            $user->load([
-                'tasks.user',
-                'tasks.project',
-            ])->tasks
+        $tasks = Cache::remember("tasks_project_{$user->id}", Carbon::now()->addMinutes(15), fn () => $user->load([
+            'tasks.user',
+            'tasks.project',
+        ])->tasks
         );
 
         return TaskResource::collection($tasks);

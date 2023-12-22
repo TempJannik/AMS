@@ -6,7 +6,6 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

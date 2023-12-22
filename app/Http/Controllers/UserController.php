@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use App\Http\Requests\StoreUserRequest;
-use App\Services\UserService;
 
 class UserController extends Controller
 {
@@ -30,6 +28,7 @@ class UserController extends Controller
         $user = User::where('email', $request['email'])->firstOrFail();
 
         $generatedToken = $userService->getNewTokenForUser($user);
+
         return response()->json(['token' => $generatedToken->plainTextToken]);
     }
 }

@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
+use App\Services\ProjectService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -22,19 +26,9 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request, ProjectService $projectService)
     {
-        $validator = Validator::make($request->only(['name']), [
-            'name' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        
-        $project = new Project();
-        $project->fill($request->only(['name']));
-        $project->save();
+        $project = $projectService->createProject($request);
 
         return new ProjectResource($project);
     }
@@ -50,19 +44,11 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Project $project)
+    public function update(UpdateProjectRequest $request, ProjectService $projectService, Project $project)
     {
-        $validator = Validator::make($request->only(['name']), [
-            'name' => 'required',
-        ]);
+        $updatedProject = $projectService->updateProject($request, $project);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $project->update($request->only(['name']));
-
-        return new ProjectResource($project);
+        return new ProjectResource($updatedProject);
     }
 
     /**

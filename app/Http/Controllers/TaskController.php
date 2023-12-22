@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
+use App\Services\TaskService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -46,23 +49,11 @@ class TaskController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTaskRequest $request, TaskService $taskService)
     {
         $this->authorize('create', Task::class);
 
-        $task = new Task();
-        
-        $validator = Validator::make($request->only(['title', 'description', 'status', 'deadline', 'user_id', 'project_id']), Task::createValidationRules());
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        
-        $task->fill($request->only($task->fillable));
-        $task->setUser($request->post('user_id'));
-        $task->setProject($request->post('project_id'));
-        $task->save();
+        $task = $taskService->createTask($request);
 
         return new TaskResource($task);
     }
@@ -84,17 +75,11 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Task $task)
+    public function update(UpdateTaskRequest $request, Task $task, TaskService $taskService)
     {
         $this->authorize('update', $task);
 
-        $validator = Validator::make($request->only($task->fillable), Task::updateValidationRules());
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $task->update($request->only($task->fillable));
+        $task = $taskService->updateTask($request, $task);
 
         return new TaskResource($task);
     }
@@ -105,6 +90,7 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $this->authorize('delete', $task);
+        
         $task->delete();
 
         return response()->json([], 204);

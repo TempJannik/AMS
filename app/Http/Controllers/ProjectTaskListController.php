@@ -13,16 +13,15 @@ class ProjectTaskListController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request, int $projectId)
+    public function __invoke(Project $project)
     {
         $this->authorize('viewAny', Task::class);
 
-        $tasks = Cache::remember("tasks_project_{$projectId}", Carbon::now()->addMinutes(15), fn () => Project::with([
-            'tasks.user',
-            'tasks.project',
-        ])
-            ->findOrFail($projectId)
-            ->tasks
+        $tasks = Cache::remember("tasks_project_{$project->id}", Carbon::now()->addMinutes(15), fn () => 
+            $project->load([
+                'tasks.user',
+                'tasks.project',
+            ])->tasks
         );
 
         return response()->json($tasks);

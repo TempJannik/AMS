@@ -43,11 +43,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('/projects/{project}', 'destroy');
     });
 
-    Route::prefix('users/{userId}/tasks')->group(function () {
+    Route::prefix('users/{user}/tasks')->group(function () {
         Route::get('/', UserTaskListController::class);
     });
 
-    Route::prefix('projects/{projectId}/tasks')->group(function () {
+    Route::prefix('projects/{project}/tasks')->group(function () {
         Route::get('/', ProjectTaskListController::class);
     });
 });

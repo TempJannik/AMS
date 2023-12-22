@@ -13,16 +13,15 @@ class UserTaskListController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request, int $userId)
+    public function __invoke(User $user)
     {
         $this->authorize('viewAny', Task::class);
 
-        $tasks = Cache::remember("tasks_project_{$userId}", Carbon::now()->addMinutes(15), fn () => User::with([
-            'tasks.user',
-            'tasks.project',
-        ])
-            ->findOrFail($userId)
-            ->tasks
+        $tasks = Cache::remember("tasks_project_{$user->id}", Carbon::now()->addMinutes(15), fn () => 
+            $user->load([
+                'tasks.user',
+                'tasks.project',
+            ])->tasks
         );
 
         return response()->json($tasks);

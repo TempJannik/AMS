@@ -63,20 +63,22 @@ class TaskController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, int $id)
+    public function show(Task $task)
     {
-        $task = Task::with('user', 'project')->findOrFail($id);
         $this->authorize('view', $task);
 
+        $task->load([
+            'user',
+            'project'
+        ]);
         return response()->json($task);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id)
+    public function update(Request $request, Task $task)
     {
-        $task = Task::findOrFail($id);
         $this->authorize('update', $task);
 
         $validator = Validator::make($request->only($task->editable()), Task::updateValidationRules());
@@ -93,9 +95,8 @@ class TaskController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, int $id)
+    public function destroy(Task $task)
     {
-        $task = Task::findOrFail($id);
         $this->authorize('delete', $task);
         $task->delete();
 

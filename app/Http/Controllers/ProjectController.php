@@ -39,20 +39,16 @@ class ProjectController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, int $id)
+    public function show(Project $project)
     {
-        $task = Project::findOrFail($id);
-
-        return response()->json($task);
+        return response()->json($project);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id)
+    public function update(Request $request, Project $project)
     {
-        $task = Project::findOrFail($id);
-
         $validator = Validator::make($request->all(), [
             'name' => 'required',
         ]);
@@ -61,18 +57,17 @@ class ProjectController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $task->update($request->all());
+        $project->update($request->all());
 
-        return response()->json($task);
+        return response()->json($project);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, int $id)
+    public function destroy(Project $project)
     {
-        $task = Project::findOrFail($id);
-        $task->delete();
+        $project->delete();
 
         return response()->json([], 204);
     }

@@ -30,24 +30,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::controller(TaskController::class)->group(function () {
         Route::get('/tasks', 'index');
         Route::get('/tasks/past-deadline', 'indexPastDeadline');
-        Route::get('/tasks/{id}', 'show');
+        Route::get('/tasks/{task}', 'show');
         Route::post('/tasks', 'store');
-        Route::put('/tasks/{id}', 'update');
-        Route::delete('/tasks/{id}', 'destroy');
+        Route::put('/tasks/{task}', 'update');
+        Route::delete('/tasks/{task}', 'destroy');
     });
     Route::controller(ProjectController::class)->group(function () {
         Route::get('/projects', 'index');
-        Route::get('/projects/{id}', 'show');
+        Route::get('/projects/{project}', 'show');
         Route::post('/projects', 'store');
-        Route::put('/projects/{id}', 'update');
-        Route::delete('/projects/{id}', 'destroy');
+        Route::put('/projects/{project}', 'update');
+        Route::delete('/projects/{project}', 'destroy');
     });
 
-    Route::prefix('users/{id}/tasks')->group(function () {
+    Route::prefix('users/{userId}/tasks')->group(function () {
         Route::get('/', UserTaskListController::class);
     });
 
-    Route::prefix('projects/{id}/tasks')->group(function () {
+    Route::prefix('projects/{projectId}/tasks')->group(function () {
         Route::get('/', ProjectTaskListController::class);
     });
 });
